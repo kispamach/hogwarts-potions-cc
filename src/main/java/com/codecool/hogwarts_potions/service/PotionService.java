@@ -1,11 +1,9 @@
 package com.codecool.hogwarts_potions.service;
 
-import com.codecool.hogwarts_potions.model.BrewingStatus;
-import com.codecool.hogwarts_potions.model.Ingredient;
-import com.codecool.hogwarts_potions.model.Potion;
-import com.codecool.hogwarts_potions.model.Recipe;
+import com.codecool.hogwarts_potions.model.*;
 import com.codecool.hogwarts_potions.repository.PotionRepository;
 import com.codecool.hogwarts_potions.repository.RecipeRepository;
+import com.codecool.hogwarts_potions.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,21 +13,40 @@ public class PotionService {
 
     private PotionRepository potionRepository;
     private RecipeRepository recipeRepository;
+    private StudentRepository studentRepository;
 
-    public PotionService(PotionRepository potionRepository) {
+    public PotionService(PotionRepository potionRepository,
+                         RecipeRepository recipeRepository,
+                         StudentRepository studentRepository) {
         this.potionRepository = potionRepository;
+        this.recipeRepository = recipeRepository;
+        this.studentRepository = studentRepository;
     }
 
-    private void checkBrewingStatus(Potion potion) {
+
+    public Potion newPotion(Potion potion) {
+        Potion newPotion = new Potion();
+        BrewingStatus brewingStatus = checkBrewingStatus(potion);
+        if (brewingStatus.equals(BrewingStatus.DISCOVERY)) newRecipe(potion);
+
+        newPotion.setBrewer(potion.getBrewer());
+        newPotion.setIngredients(potion.getIngredients());
+        newPotion.setBrewingStatus(brewingStatus);
+        newPotion.setRecipe(checkRecipeIngredients(potion.getIngredients()));
+        potionRepository.save(newPotion);
+        return newPotion;
+    }
+
+    private BrewingStatus checkBrewingStatus(Potion potion) {
 
         if (potion.getIngredients().size() < 5) {
-            potion.setBrewingStatus(BrewingStatus.BREW);
+            return BrewingStatus.BREW;
         }
         else if (checkRecipeIngredients(potion.getIngredients()) != null) {
-            potion.setBrewingStatus(BrewingStatus.REPLICA);
+            return BrewingStatus.REPLICA;
         }
         else {
-            potion.setBrewingStatus(BrewingStatus.DISCOVERY);
+            return BrewingStatus.DISCOVERY;
         }
     }
 
@@ -53,8 +70,20 @@ public class PotionService {
 
     }
 
+    private void newRecipe(Potion potion) {
+        String recipeName = potion.getBrewer().getName() + "'s discovery";
+        Recipe newRecipe = new Recipe();
+        newRecipe.setName(recipeName);
+        newRecipe.setBrewer(potion.getBrewer());
+        newRecipe.setIngredients(potion.getIngredients());
+        recipeRepository.save(newRecipe);
+    }
+
     public List<Potion> getAllPotions() {
         return potionRepository.findAll();
     }
 
+    public List<Potion> getPotionsByStudent(Long studentId) {
+        return potionRepository.findAllByBrewer_Id(studentId);
+    }
 }
