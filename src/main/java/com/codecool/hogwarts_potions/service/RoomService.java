@@ -1,11 +1,14 @@
 package com.codecool.hogwarts_potions.service;
 
+import com.codecool.hogwarts_potions.model.PetType;
 import com.codecool.hogwarts_potions.model.Room;
+import com.codecool.hogwarts_potions.model.Student;
 import com.codecool.hogwarts_potions.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
@@ -22,24 +25,41 @@ public class RoomService {
     }
 
     public void addRoom(Room room) {
-        //TODO
+        if(room != null) roomRepository.save(room);
     }
 
     public Room getRoomById(Long id) {
-        //TODO
-        return null;
+        return roomRepository.findById(id).orElse(null);
     }
 
     public void updateRoomById(Long id, Room updatedRoom) {
-        //TODO
+        Room room = getRoomById(id);
+        if (room != null && updatedRoom != null) {
+            room.setCapacity(updatedRoom.getCapacity());
+            room.setResidents(updatedRoom.getResidents());
+        }
     }
 
     public void deleteRoomById(Long id) {
-        //TODO
+        roomRepository.findById(id).ifPresent(room -> roomRepository.delete(room));
     }
 
     public List<Room> getRoomsForRatOwners() {
-        //TODO
-        return null;
+        return roomRepository.findAll()
+                .stream()
+                .filter(t -> t.getResidents()
+                    .stream()
+                        .noneMatch(z -> z.getPetType().equals(PetType.CAT) || z.getPetType().equals(PetType.OWL)))
+                .collect(Collectors.toList());
+    }
+
+    public List<Room> availableRooms(Student student) {
+        return roomRepository.findAll()
+                .stream()
+                .filter(room -> room.getResidents().size() == 0
+                        || room.getResidents()
+                        .stream()
+                        .allMatch(resident -> resident.getHouseType().equals(student.getHouseType())))
+                .collect(Collectors.toList());
     }
 }
