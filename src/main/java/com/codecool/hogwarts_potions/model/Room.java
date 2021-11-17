@@ -11,10 +11,15 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name="rooms")
 public class Room {
 
     @JsonIgnore
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Integer capacity;
+    @OneToMany
     private Set<Student> residents;
 }
