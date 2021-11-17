@@ -1,8 +1,6 @@
 package com.codecool.hogwarts_potions.controller;
 
-import com.codecool.hogwarts_potions.model.Room;
 import com.codecool.hogwarts_potions.model.Student;
-import com.codecool.hogwarts_potions.service.RoomService;
 import com.codecool.hogwarts_potions.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
