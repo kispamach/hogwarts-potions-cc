@@ -4,6 +4,7 @@ import com.codecool.hogwarts_potions.model.Student;
 import com.codecool.hogwarts_potions.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class StudentService {
         return studentRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public void updateStudentById(Long id, Student updatedStudent) {
         Student student = getStudentById(id);
         if (student != null && updatedStudent != null) {

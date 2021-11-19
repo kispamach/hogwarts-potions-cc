@@ -21,9 +21,9 @@ public class Potion {
     private String name;
     @OneToOne
     private Student brewer;
-    @OneToMany
+    @ManyToMany
     private List<Ingredient> ingredients;
     private BrewingStatus brewingStatus;
-    @OneToOne
+    @ManyToOne
     private Recipe recipe;
 }

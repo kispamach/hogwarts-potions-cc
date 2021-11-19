@@ -6,8 +6,12 @@ import com.codecool.hogwarts_potions.repository.PotionRepository;
 import com.codecool.hogwarts_potions.repository.RecipeRepository;
 import com.codecool.hogwarts_potions.repository.StudentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class PotionService {
@@ -27,6 +31,13 @@ public class PotionService {
         this.ingredientRepository = ingredientRepository;
     }
 
+    public List<Potion> getAllPotions() {
+        return potionRepository.findAll();
+    }
+
+    public List<Potion> getPotionsByStudent(Long studentId) {
+        return potionRepository.findAllByBrewer_Id(studentId);
+    }
 
     public Potion newPotion(Potion potion) {
         Potion newPotion = new Potion();
@@ -73,50 +84,73 @@ public class PotionService {
 
     }
 
-    private void newRecipe(Potion potion) {
+
+    @Transactional
+    public Recipe newRecipe(Potion potion) {
         String recipeName = potion.getBrewer().getName() + "'s discovery";
+        System.out.println(recipeName);
+        List<Ingredient> ingredientsListOfPotion = new ArrayList<>(potion.getIngredients());
         Recipe newRecipe = new Recipe();
         newRecipe.setName(recipeName);
         newRecipe.setBrewer(potion.getBrewer());
-        newRecipe.setIngredients(potion.getIngredients());
-        recipeRepository.save(newRecipe);
+        newRecipe.setIngredients(ingredientsListOfPotion);
+        return recipeRepository.save(newRecipe);
     }
 
-    public List<Potion> getAllPotions() {
-        return potionRepository.findAll();
-    }
 
-    public List<Potion> getPotionsByStudent(Long studentId) {
-        return potionRepository.findAllByBrewer_Id(studentId);
-    }
-
+    @Transactional
     public Potion brewingPotion(Long studentId) {
+        System.out.println(studentId);
         Student student = studentRepository.findById(studentId).orElse(null);
+        System.out.println(student);
         Potion newPotion = new Potion();
         newPotion.setBrewer(student);
         newPotion.setBrewingStatus(BrewingStatus.BREW);
+        System.out.println(newPotion);
         return potionRepository.save(newPotion);
     }
 
+    @Transactional
     public Potion addIngredientToPotion(Long potionId, Ingredient newIngredient) {
         Potion potion = potionRepository.findById(potionId).orElse(null);
         Ingredient ingredient = saveIngredient(newIngredient);
+        System.out.println(ingredient);
         if (potion == null) return null;
-        List<Ingredient> ingredientsListOfPotion = potion.getIngredients();
+        List<Ingredient> ingredientsListOfPotion = new ArrayList<>(potion.getIngredients());
         ingredientsListOfPotion.add(ingredient);
         potion.setIngredients(ingredientsListOfPotion);
+        BrewingStatus brewingStatus = checkBrewingStatus(potion);
+        potion.setBrewingStatus(brewingStatus);
+        if (brewingStatus.equals(BrewingStatus.DISCOVERY)) {
+            System.out.println("alma");
+            Recipe newRecipe = newRecipe(potion);
+            System.out.println("settelés előtt" + newRecipe.getIngredients());
+            potion.setRecipe(newRecipe);
+        }
         return potion;
     }
 
     private Ingredient saveIngredient(Ingredient ingredient) {
-        return ingredientRepository.findIngredientByName(ingredient.getName()) == null
+        Ingredient useIngredient = ingredientRepository.findIngredientByNameIgnoreCase(ingredient.getName())
+                .orElse(null);
+        return useIngredient == null
                 ? ingredientRepository.save(ingredient)
-                : ingredientRepository.findIngredientByName(ingredient.getName());
+                : useIngredient;
     }
 
-    public List<Recipe> getRecipeToHelp(Long potionId) {
-        Potion potion = potionRepository.findById(potionId).orElse(null);
-        if (potion == null || potion.getIngredients().size() > 4) return null;
-        return recipeRepository.findAllByIngredientsContains(potion.getIngredients());
-    }
+//    public List<Recipe> getRecipesToHelp(Long potionId) {
+//        Potion potion = potionRepository.findById(potionId).orElse(null);
+//        if (potion == null || potion.getIngredients().size() > 4) return null;
+//        List<Ingredient> ingredientListOfPotion = new ArrayList<>(potion.getIngredients());
+//        List<Recipe> recipes = new ArrayList<>(recipeRepository.findAll());
+//        Set<Recipe> ingredientContainRecipe = recipes
+//                .stream()
+//                .map(recipe -> recipe.getIngredients()
+//                        .stream()
+//                        .distinct()
+//                        .filter(ingredientListOfPotion::contains)
+//                        .collect(Collectors.toSet()))
+//                .collect(Collectors.toSet());
+//        return null;
+//    }
 }

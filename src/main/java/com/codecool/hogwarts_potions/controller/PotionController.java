@@ -1,10 +1,8 @@
 package com.codecool.hogwarts_potions.controller;
 
-import com.codecool.hogwarts_potions.model.Ingredient;
-import com.codecool.hogwarts_potions.model.Potion;
-import com.codecool.hogwarts_potions.model.Recipe;
-import com.codecool.hogwarts_potions.model.Student;
+import com.codecool.hogwarts_potions.model.*;
 import com.codecool.hogwarts_potions.service.PotionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +16,11 @@ public class PotionController {
     public PotionController(PotionService potionService) {
         this.potionService = potionService;
     }
+
+    //    @Autowired
+//    public void setPotionService(PotionService potionService) {
+//        this.potionService = potionService;
+//    }
 
     @GetMapping
     public List<Potion> getAllPotion() {
@@ -35,8 +38,8 @@ public class PotionController {
     }
 
     @PostMapping("/brew")
-    public Potion brewingPotion(@RequestBody Long studentId) {
-        return potionService.brewingPotion(studentId);
+    public Potion brewingPotion(@RequestBody IdDTO studentId) {
+        return potionService.brewingPotion(studentId.getId());
     }
 
     @PutMapping("/{potion-id}/add")
@@ -46,6 +49,6 @@ public class PotionController {
 
     @GetMapping("/{potion-id}/help")
     public List<Recipe> getRecipeToHelp(@PathVariable ("potion-id") Long potionId) {
-        return potionService.getRecipeToHelp(potionId);
+        return null; //potionService.getRecipesToHelp(potionId);
     }
 }

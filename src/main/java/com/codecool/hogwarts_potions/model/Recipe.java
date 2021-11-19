@@ -24,6 +24,7 @@ public class Recipe {
     @OneToOne
     private Student brewer;
 
-    @OneToMany
+    @ManyToMany
     private List<Ingredient> ingredients;
+
 }
